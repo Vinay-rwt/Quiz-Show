@@ -2,6 +2,9 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { authRouter } from './routes/auth';
+import { topicsRouter } from './routes/topics';
+import { questionsRouter } from './routes/questions';
+import { quizRouter } from './routes/quiz';
 import { AppError } from './utils/errors';
 import { config } from './config';
 
@@ -24,6 +27,9 @@ export function createApp(): express.Application {
 
   // API routes
   app.use('/api/auth', authRouter);
+  app.use('/api/topics', topicsRouter);
+  app.use('/api/questions', questionsRouter);
+  app.use('/api/quiz', quizRouter);
 
   // Global error handler
   app.use(
