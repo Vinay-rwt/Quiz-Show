@@ -5,6 +5,8 @@ import { authRouter } from './routes/auth';
 import { topicsRouter } from './routes/topics';
 import { questionsRouter } from './routes/questions';
 import { quizRouter } from './routes/quiz';
+import { analyticsRouter } from './routes/analytics';
+import { leaderboardRouter } from './routes/leaderboard';
 import { AppError } from './utils/errors';
 import { config } from './config';
 
@@ -30,6 +32,8 @@ export function createApp(): express.Application {
   app.use('/api/topics', topicsRouter);
   app.use('/api/questions', questionsRouter);
   app.use('/api/quiz', quizRouter);
+  app.use('/api/analytics', analyticsRouter);
+  app.use('/api/leaderboard', leaderboardRouter);
 
   // Global error handler
   app.use(
