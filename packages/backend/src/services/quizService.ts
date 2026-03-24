@@ -26,6 +26,17 @@ export async function scoreAndPersistQuiz(
     throw new BadRequestError('One or more question IDs are invalid');
   }
 
+  // Guard against cross-topic spoofing: a client could play React/EASY questions
+  // but submit them claiming topic=Angular and difficulty=HARD to inflate their
+  // leaderboard position. Verify every submitted question actually belongs to
+  // the claimed topic AND difficulty before scoring or persisting.
+  const mismatch = questions.some(
+    (q) => q.topicId !== topic.id || q.difficulty !== difficulty,
+  );
+  if (mismatch) {
+    throw new BadRequestError('Submitted questions do not match the declared topic or difficulty');
+  }
+
   // Map for O(1) lookup
   const questionMap = new Map(questions.map((q) => [q.id, q]));
 

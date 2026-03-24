@@ -47,9 +47,9 @@ authRouter.post('/register', async (req, res, next) => {
       where: { OR: [{ email }, { username }] },
     });
     if (existing) {
-      throw new ConflictError(
-        existing.email === email ? 'Email already registered' : 'Username already taken',
-      );
+      // Generic message — don't reveal which field matched to prevent
+      // email/username enumeration attacks.
+      throw new ConflictError('An account already exists with this email or username.');
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
