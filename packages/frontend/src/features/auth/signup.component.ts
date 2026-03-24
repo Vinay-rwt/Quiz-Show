@@ -143,14 +143,13 @@ export class SignupComponent {
       await this.auth.register(this.email, this.username, this.password);
       this.router.navigate(['/home']);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '';
-      if (msg.toLowerCase().includes('email')) {
-        this.errorMsg.set('That email is already registered.');
-      } else if (msg.toLowerCase().includes('username')) {
-        this.errorMsg.set('That username is already taken.');
-      } else {
-        this.errorMsg.set('Registration failed. Please try again.');
-      }
+      // Backend returns a generic conflict message — display it directly
+      // so we don't leak which specific field (email/username) already exists.
+      const httpErr = err as { error?: { error?: string } };
+      const msg = httpErr?.error?.error ?? '';
+      this.errorMsg.set(
+        msg || 'Registration failed. Please try again.',
+      );
     }
   }
 }

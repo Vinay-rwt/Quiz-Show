@@ -40,9 +40,11 @@ export async function getRandomQuestions(
   `;
 
   if (questions.length < count) {
+    // Generic message — don't reveal how many questions exist in the DB
+    // for this topic/difficulty combination.
     throw new BadRequestError(
-      `Not enough ${difficulty} questions for topic "${topicSlug}". ` +
-        `Requested ${count}, available ${questions.length}.`,
+      `Not enough questions available for this topic and difficulty. ` +
+        `Try a different difficulty or topic.`,
     );
   }
 
