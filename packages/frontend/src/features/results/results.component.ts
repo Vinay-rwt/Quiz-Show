@@ -13,8 +13,8 @@ import { NeonButtonComponent } from '../../shared/components/neon-button.compone
     <div class="min-h-screen px-4 py-10" style="background-color: var(--bg-dark)">
       <div class="max-w-2xl mx-auto animate-slide-in">
 
-        <!-- Score card -->
-        <div class="neon-card p-8 text-center mb-8 border-glow-cyan">
+        <!-- Score card — static (not clickable), no hover glow -->
+        <div class="neon-card-static p-8 text-center mb-8 border-glow-cyan">
           <p class="text-xs tracking-widest uppercase mb-2" style="color: var(--text-dim)">
             {{ quizState.selectedTopicName() }} • {{ quizState.selectedDifficulty() }}
           </p>
@@ -75,9 +75,7 @@ import { NeonButtonComponent } from '../../shared/components/neon-button.compone
         <div class="flex gap-3 justify-center flex-wrap">
           <app-neon-button variant="cyan" (click)="replay()">Play Again</app-neon-button>
           <app-neon-button variant="ghost" (click)="goHome()">Home</app-neon-button>
-          <app-neon-button *ngIf="auth.isAuthenticated()" variant="purple" (click)="goAnalytics()">
-            Analytics
-          </app-neon-button>
+          <app-neon-button variant="purple" (click)="goAnalytics()">Analytics</app-neon-button>
         </div>
 
       </div>

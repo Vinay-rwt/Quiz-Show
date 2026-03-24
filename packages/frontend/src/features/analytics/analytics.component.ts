@@ -51,6 +51,15 @@ function topicColor(slug: string): string {
             </div>
           </div>
 
+          <!-- ── API error banner ────────────────────────────────────────── -->
+          <div *ngIf="apiError()"
+               class="neon-card-static p-4 mb-6 text-center"
+               style="border-color: rgba(255,7,58,0.3); box-shadow: 0 0 12px rgba(255,7,58,0.1)">
+            <p class="text-sm" style="color: var(--neon-red)">
+              ⚠ Failed to load your stats. Please try refreshing the page.
+            </p>
+          </div>
+
           <!-- ── Guest upsell banner ──────────────────────────────────────── -->
           <div *ngIf="!auth.isAuthenticated()"
                class="neon-card p-4 mb-8 border-[#9d00ff]/30 text-center">
@@ -63,9 +72,10 @@ function topicColor(slug: string): string {
             </div>
           </div>
 
-          <!-- ── Overall stats row ───────────────────────────────────────── -->
+          <!-- ── Overall stats row ─────────────────────────────────────────
+               neon-card-static: these are display-only, no hover glow needed -->
           <div *ngIf="summary()" class="grid grid-cols-3 gap-4 mb-8">
-            <div class="neon-card p-5 text-center border-glow-cyan">
+            <div class="neon-card-static p-5 text-center border-glow-cyan">
               <p class="text-3xl font-black mb-1" style="color: var(--neon-cyan)">
                 {{ summary()!.totalQuizzes }}
               </p>
@@ -73,7 +83,7 @@ function topicColor(slug: string): string {
                 Quizzes
               </p>
             </div>
-            <div class="neon-card p-5 text-center border-[#39ff14]/30">
+            <div class="neon-card-static p-5 text-center border-[#39ff14]/30">
               <p class="text-3xl font-black mb-1" style="color: #39ff14">
                 {{ summary()!.overallAccuracy }}%
               </p>
@@ -81,7 +91,7 @@ function topicColor(slug: string): string {
                 Accuracy
               </p>
             </div>
-            <div class="neon-card p-5 text-center border-[#9d00ff]/30">
+            <div class="neon-card-static p-5 text-center border-[#9d00ff]/30">
               <p class="text-3xl font-black mb-1" style="color: var(--neon-purple)">
                 {{ summary()!.totalCorrect }}<span class="text-lg text-white/30">/{{ summary()!.totalQuestions }}</span>
               </p>
@@ -233,6 +243,7 @@ export class AnalyticsComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly loading = signal(true);
+  readonly apiError = signal(false);
   readonly summary = signal<AnalyticsSummary | null>(null);
   readonly recentAttempts = signal<QuizAttempt[]>([]);
   readonly leaderboard = signal<LeaderboardEntry[]>([]);
@@ -258,10 +269,13 @@ export class AnalyticsComponent implements OnInit {
     if (this.auth.isAuthenticated()) {
       // Authenticated: fetch aggregated summary + recent attempts from API
       const [summaryRes, historyRes] = await Promise.all([
-        firstValueFrom(this.http.get<AnalyticsSummary>('/api/analytics/me')).catch(() => null),
+        firstValueFrom(this.http.get<AnalyticsSummary>('/api/analytics/me')).catch(() => {
+          this.apiError.set(true);
+          return null;
+        }),
         firstValueFrom(
           this.http.get<{ attempts: QuizAttempt[] }>('/api/analytics/history?limit=10'),
-        ).catch(() => ({ attempts: [] })),
+        ).catch(() => ({ attempts: [] as QuizAttempt[] })),
       ]);
       this.summary.set(summaryRes);
       this.recentAttempts.set(historyRes?.attempts ?? []);

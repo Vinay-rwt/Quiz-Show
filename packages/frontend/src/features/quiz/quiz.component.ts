@@ -31,7 +31,7 @@ type PageState = 'loading' | 'ready' | 'revealing' | 'submitting' | 'error';
       </div>
 
       <div *ngIf="state() === 'ready' || state() === 'revealing' || state() === 'submitting'"
-           class="max-w-2xl mx-auto px-4 py-6">
+           class="max-w-2xl mx-auto px-4 py-6 scanline-overlay">
 
         <!-- Header bar -->
         <div class="flex items-center justify-between mb-6">
