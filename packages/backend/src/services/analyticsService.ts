@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import type { AnalyticsSummary, TopicAccuracy } from '@quizapp/shared';
+import type { AnalyticsSummary, TopicAccuracy, QuizAttempt } from '@quizapp/shared';
 
 interface RawTopicRow {
   topic_slug: string;
@@ -71,4 +71,26 @@ export async function getAnalyticsForUser(userId: string): Promise<AnalyticsSumm
       : 0,
     byTopic,
   };
+}
+
+export async function getRecentAttempts(
+  userId: string,
+  limit: number,
+): Promise<QuizAttempt[]> {
+  const rows = await prisma.quizAttempt.findMany({
+    where: { userId },
+    orderBy: { completedAt: 'desc' },
+    take: limit,
+    include: { topic: true },
+  });
+
+  return rows.map((row) => ({
+    id: row.id,
+    topicSlug: row.topic.slug as QuizAttempt['topicSlug'],
+    topicName: row.topic.name,
+    difficulty: row.difficulty as QuizAttempt['difficulty'],
+    score: row.score,
+    totalQuestions: row.totalQuestions,
+    completedAt: row.completedAt.toISOString(),
+  }));
 }
