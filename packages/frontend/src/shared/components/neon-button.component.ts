@@ -1,20 +1,87 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 type ButtonVariant = 'cyan' | 'pink' | 'purple' | 'yellow' | 'ghost';
 
 @Component({
   selector: 'app-neon-button',
   standalone: true,
-  imports: [CommonModule],
+  styles: [`
+    button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-family: var(--font-heading, 'Space Grotesk', system-ui);
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      background: transparent;
+      transition: background-color .2s, box-shadow .2s, border-color .2s, color .2s, opacity .2s;
+      white-space: nowrap;
+    }
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    button:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 3px;
+    }
+
+    /* ── Variants ────────────────────────────────────────────────── */
+    .btn-cyan {
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+    .btn-cyan:not(:disabled):hover {
+      background-color: rgba(0,245,255,0.1);
+      box-shadow: 0 0 16px rgba(0,245,255,0.4);
+    }
+
+    .btn-pink {
+      border: 1px solid var(--neon-pink);
+      color: var(--neon-pink);
+    }
+    .btn-pink:not(:disabled):hover {
+      background-color: rgba(255,0,222,0.1);
+      box-shadow: 0 0 16px rgba(255,0,222,0.4);
+    }
+
+    .btn-purple {
+      border: 1px solid var(--neon-purple);
+      color: var(--neon-purple);
+    }
+    .btn-purple:not(:disabled):hover {
+      background-color: rgba(157,0,255,0.1);
+      box-shadow: 0 0 16px rgba(157,0,255,0.4);
+    }
+
+    .btn-yellow {
+      border: 1px solid var(--neon-yellow);
+      color: var(--neon-yellow);
+    }
+    .btn-yellow:not(:disabled):hover {
+      background-color: rgba(255,215,0,0.1);
+      box-shadow: 0 0 16px rgba(255,215,0,0.4);
+    }
+
+    .btn-ghost {
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6);
+    }
+    .btn-ghost:not(:disabled):hover {
+      border-color: rgba(255,255,255,0.4);
+      color: #f0f6fc;
+    }
+  `],
   template: `
     <button
       [type]="type"
       [disabled]="disabled"
-      [ngClass]="buttonClasses"
-      class="relative px-6 py-3 rounded-lg font-semibold text-sm tracking-wide
-             transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed
-             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#030712]"
+      [class]="'btn-' + variant"
     >
       <ng-content />
     </button>
@@ -24,24 +91,4 @@ export class NeonButtonComponent {
   @Input() variant: ButtonVariant = 'cyan';
   @Input() type: 'button' | 'submit' | 'reset' = 'button';
   @Input() disabled = false;
-
-  get buttonClasses(): Record<string, boolean> {
-    return {
-      // Cyan
-      'bg-transparent border border-[#00f5ff] text-[#00f5ff] hover:bg-[#00f5ff]/10 hover:shadow-[0_0_16px_#00f5ff] focus:ring-[#00f5ff]':
-        this.variant === 'cyan',
-      // Pink
-      'bg-transparent border border-[#ff00de] text-[#ff00de] hover:bg-[#ff00de]/10 hover:shadow-[0_0_16px_#ff00de] focus:ring-[#ff00de]':
-        this.variant === 'pink',
-      // Purple
-      'bg-transparent border border-[#9d00ff] text-[#9d00ff] hover:bg-[#9d00ff]/10 hover:shadow-[0_0_16px_#9d00ff] focus:ring-[#9d00ff]':
-        this.variant === 'purple',
-      // Yellow
-      'bg-transparent border border-[#ffd700] text-[#ffd700] hover:bg-[#ffd700]/10 hover:shadow-[0_0_16px_#ffd700] focus:ring-[#ffd700]':
-        this.variant === 'yellow',
-      // Ghost
-      'bg-transparent border border-white/20 text-white/60 hover:border-white/40 hover:text-white focus:ring-white/40':
-        this.variant === 'ghost',
-    };
-  }
 }

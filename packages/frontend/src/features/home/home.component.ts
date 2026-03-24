@@ -13,265 +13,388 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import type { Topic } from '@quizapp/shared';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+interface TopicsResponse { topics: Topic[]; }
 
-interface TopicsResponse {
-  topics: Topic[];
-}
-
-// Augmented topic view-model: maps a topic slug to its neon glow colour.
-// Keeping this co-located keeps the mapping close to where it's consumed;
-// it's intentionally not in the shared package because it's purely a UI concern.
 interface TopicViewModel extends Topic {
-  glowColor: string;         // CSS hex for box-shadow / text-shadow
-  borderClass: string;       // CSS utility class from styles.css
-  textColorStyle: string;    // inline style for topic-name text
+  glowColor: string;
+  borderClass: string;
+  textColorStyle: string;
+  cardClass: string;
 }
 
 type FetchState = 'loading' | 'success' | 'error';
 
-// ─── Topic colour map ─────────────────────────────────────────────────────────
-
-const TOPIC_COLORS: Record<string, { glow: string; borderClass: string }> = {
-  react:          { glow: '#00f5ff', borderClass: 'border-glow-cyan' },
-  angular:        { glow: '#ff00de', borderClass: 'border-glow-pink' },
-  typescript:     { glow: '#3178c6', borderClass: 'border-glow-typescript' },
-  'system-design': { glow: '#9d00ff', borderClass: 'border-glow-purple' },
+const TOPIC_COLORS: Record<string, { glow: string; borderClass: string; cardClass: string }> = {
+  react:           { glow: '#00f5ff', borderClass: 'border-glow-cyan',   cardClass: 'react-card' },
+  angular:         { glow: '#ff00de', borderClass: 'border-glow-pink',   cardClass: 'angular-card' },
+  typescript:      { glow: '#3178c6', borderClass: 'border-glow-typescript', cardClass: 'typescript-card' },
+  'system-design': { glow: '#9d00ff', borderClass: 'border-glow-purple', cardClass: 'system-design-card' },
 };
 
 function toViewModel(topic: Topic): TopicViewModel {
-  const colors = TOPIC_COLORS[topic.slug] ?? { glow: '#00f5ff', borderClass: 'border-glow-cyan' };
+  const c = TOPIC_COLORS[topic.slug] ?? { glow: '#00f5ff', borderClass: 'border-glow-cyan', cardClass: '' };
   return {
     ...topic,
-    glowColor: colors.glow,
-    borderClass: colors.borderClass,
-    textColorStyle: `color: ${colors.glow}; text-shadow: 0 0 10px ${colors.glow}, 0 0 30px ${colors.glow}`,
+    glowColor: c.glow,
+    borderClass: c.borderClass,
+    cardClass: c.cardClass,
+    textColorStyle: `color:${c.glow};text-shadow:0 0 10px ${c.glow},0 0 30px ${c.glow}`,
   };
 }
-
-// ─── Component ───────────────────────────────────────────────────────────────
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, RouterLink],
   styles: [`
-    .topic-card {
-      background-color: var(--bg-card);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-      cursor: pointer;
-    }
-    .topic-card:hover {
-      transform: scale(1.04);
-    }
-    .topic-card:hover.react-card {
-      border-color: rgba(0,245,255,0.5);
-      box-shadow: 0 0 28px rgba(0,245,255,0.25), inset 0 0 12px rgba(0,245,255,0.06);
-    }
-    .topic-card:hover.angular-card {
-      border-color: rgba(255,0,222,0.5);
-      box-shadow: 0 0 28px rgba(255,0,222,0.25), inset 0 0 12px rgba(255,0,222,0.06);
-    }
-    .topic-card:hover.typescript-card {
-      border-color: rgba(49,120,198,0.5);
-      box-shadow: 0 0 28px rgba(49,120,198,0.25), inset 0 0 12px rgba(49,120,198,0.06);
-    }
-    .topic-card:hover.system-design-card {
-      border-color: rgba(157,0,255,0.5);
-      box-shadow: 0 0 28px rgba(157,0,255,0.25), inset 0 0 12px rgba(157,0,255,0.06);
+    /* ── Page ────────────────────────────────────────────────────────── */
+    .page {
+      min-height: 100vh;
+      background-color: var(--bg-dark);
+      background-image:
+        radial-gradient(ellipse at 15% 40%, rgba(0,245,255,.04) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 15%, rgba(157,0,255,.035) 0%, transparent 55%),
+        radial-gradient(ellipse at 55% 85%, rgba(255,0,222,.025) 0%, transparent 55%);
     }
 
-    /* Spinner */
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 3px solid rgba(0,245,255,0.2);
-      border-top-color: var(--neon-cyan);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    /* ── Navigation ──────────────────────────────────────────────────── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 32px;
+      background: rgba(13,17,23,.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,.06);
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Nav button base styles */
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      outline: none;
+    }
+    .nav-logo-text {
+      font-family: var(--font-heading, 'Space Grotesk', system-ui);
+      font-size: .85rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 12px rgba(0,245,255,.5);
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
     .nav-btn {
-      padding: 6px 18px;
-      border-radius: 6px;
-      font-size: 0.875rem;
+      padding: 7px 18px;
+      border-radius: 8px;
+      font-size: .8rem;
       font-weight: 600;
-      letter-spacing: 0.03em;
-      transition: opacity 0.15s ease, box-shadow 0.15s ease;
+      letter-spacing: .04em;
+      transition: all .18s ease;
       cursor: pointer;
       border: none;
       outline: none;
     }
-    .nav-btn:hover { opacity: 0.85; }
-    .nav-btn-outline {
-      background: transparent;
-      border: 1px solid rgba(0,245,255,0.4);
+    .nav-btn-outline { background:transparent; border:1px solid rgba(0,245,255,.35); color:var(--neon-cyan); }
+    .nav-btn-outline:hover { background:rgba(0,245,255,.06); box-shadow:0 0 14px rgba(0,245,255,.25); }
+    .nav-btn-filled  { background:var(--neon-cyan); color:#030712; font-weight:700; }
+    .nav-btn-filled:hover { box-shadow:0 0 20px rgba(0,245,255,.55); filter:brightness(1.05); }
+    .nav-btn-ghost   { background:transparent; color:var(--text-dim,#8b949e); border:1px solid rgba(255,255,255,.1); }
+    .nav-btn-ghost:hover { color:#f0f6fc; border-color:rgba(255,255,255,.22); }
+    .nav-btn-logout  { background:transparent; border:1px solid rgba(255,7,58,.35); color:var(--neon-red,#ff073a); }
+    .nav-btn-logout:hover { background:rgba(255,7,58,.06); box-shadow:0 0 14px rgba(255,7,58,.25); }
+    .user-badge {
+      font-size:.75rem; font-weight:600; padding:5px 12px; border-radius:9999px;
+      color:var(--neon-cyan); background:rgba(0,245,255,.08); border:1px solid rgba(0,245,255,.2);
+    }
+
+    /* ── Main content area ───────────────────────────────────────────── */
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 72px 24px 96px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 56px;
+      animation: slide-in-up .4s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    .eyebrow {
+      display: block;
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .28em;
+      text-transform: uppercase;
       color: var(--neon-cyan);
+      opacity: .65;
+      margin-bottom: 18px;
     }
-    .nav-btn-outline:hover {
-      box-shadow: 0 0 12px rgba(0,245,255,0.3);
-    }
-    .nav-btn-filled {
-      background: var(--neon-cyan);
-      color: #030712;
-    }
-    .nav-btn-filled:hover {
-      box-shadow: 0 0 18px rgba(0,245,255,0.5);
-    }
-    .nav-btn-ghost {
-      background: transparent;
-      color: var(--text-dim, #8b949e);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .nav-btn-ghost:hover {
-      color: #f0f6fc;
-      border-color: rgba(255,255,255,0.25);
-    }
-    .nav-btn-logout {
-      background: transparent;
-      border: 1px solid rgba(255,7,58,0.4);
-      color: var(--neon-red, #ff073a);
-    }
-    .nav-btn-logout:hover {
-      box-shadow: 0 0 12px rgba(255,7,58,0.3);
-    }
-
-    /* PLAY label */
-    .play-label {
-      font-size: 0.7rem;
+    .main-title {
+      display: block;
+      font-family: var(--font-heading, 'Space Grotesk', system-ui);
+      font-size: clamp(2rem, 5vw, 3.5rem);
       font-weight: 700;
-      letter-spacing: 0.15em;
-      color: rgba(255,255,255,0.35);
-      transition: color 0.2s ease;
+      letter-spacing: -.01em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, var(--neon-cyan) 0%, #a78bfa 50%, var(--neon-pink) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
     }
-    .topic-card:hover .play-label {
-      color: rgba(255,255,255,0.7);
+    .header-accent {
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), #a78bfa, var(--neon-pink), transparent);
+      height: 1px;
+      width: 160px;
+      margin: 0 auto 20px;
+      opacity: .7;
+    }
+    .subtitle {
+      display: block;
+      font-size: .8rem;
+      font-weight: 500;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-dim, #8b949e);
     }
 
-    /* Gradient header accent */
-    .header-accent {
-      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
-      height: 2px;
-      border-radius: 1px;
-      margin: 0 auto;
-      width: 80px;
+    /* ── Topic grid ──────────────────────────────────────────────────── */
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      width: 100%;
+      max-width: 640px;
+    }
+    @media (max-width: 520px) {
+      .topic-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Topic card ──────────────────────────────────────────────────── */
+    .topic-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      padding: 36px 24px;
+      text-align: center;
+      background-color: var(--bg-card);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 20px;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 4px 24px rgba(0,0,0,.5);
+      transition: transform .25s cubic-bezier(.16,1,.3,1), border-color .25s, box-shadow .25s;
+    }
+    .topic-card::before {
+      content:''; position:absolute; top:0; left:0; right:0;
+      height:2px; border-radius:20px 20px 0 0; opacity:0; transition:opacity .25s;
+    }
+    .topic-card:hover { transform: translateY(-4px) scale(1.01); }
+    .topic-card:hover::before { opacity:1; }
+
+    .react-card::before         { background:linear-gradient(90deg,transparent,#00f5ff,transparent); }
+    .angular-card::before       { background:linear-gradient(90deg,transparent,#ff00de,transparent); }
+    .typescript-card::before    { background:linear-gradient(90deg,transparent,#3178c6,transparent); }
+    .system-design-card::before { background:linear-gradient(90deg,transparent,#9d00ff,transparent); }
+
+    .topic-card:hover.react-card         { border-color:rgba(0,245,255,.4);   box-shadow:0 8px 40px rgba(0,245,255,.2),0 4px 24px rgba(0,0,0,.5); }
+    .topic-card:hover.angular-card       { border-color:rgba(255,0,222,.4);   box-shadow:0 8px 40px rgba(255,0,222,.2),0 4px 24px rgba(0,0,0,.5); }
+    .topic-card:hover.typescript-card    { border-color:rgba(49,120,198,.4);  box-shadow:0 8px 40px rgba(49,120,198,.2),0 4px 24px rgba(0,0,0,.5); }
+    .topic-card:hover.system-design-card { border-color:rgba(157,0,255,.4);   box-shadow:0 8px 40px rgba(157,0,255,.2),0 4px 24px rgba(0,0,0,.5); }
+
+    /* ── Icon container ──────────────────────────────────────────────── */
+    .topic-icon-wrap {
+      width:72px; height:72px; border-radius:18px;
+      display:flex; align-items:center; justify-content:center; transition:box-shadow .25s;
+    }
+    .react-card         .topic-icon-wrap { background:rgba(0,245,255,.08);   border:1px solid rgba(0,245,255,.15); }
+    .angular-card       .topic-icon-wrap { background:rgba(255,0,222,.08);   border:1px solid rgba(255,0,222,.15); }
+    .typescript-card    .topic-icon-wrap { background:rgba(49,120,198,.08);  border:1px solid rgba(49,120,198,.15); }
+    .system-design-card .topic-icon-wrap { background:rgba(157,0,255,.08);   border:1px solid rgba(157,0,255,.15); }
+
+    /* ── Topic name ──────────────────────────────────────────────────── */
+    .topic-name {
+      font-family: var(--font-heading, 'Space Grotesk', system-ui);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .topic-divider { width:32px; height:1px; border-radius:1px; opacity:.35; }
+
+    /* ── Play row ────────────────────────────────────────────────────── */
+    .play-row {
+      display:flex; align-items:center; gap:6px;
+      font-size:.7rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+      color:rgba(255,255,255,.3); transition:color .2s,gap .2s;
+    }
+    .topic-card:hover .play-row { color:rgba(255,255,255,.75); gap:10px; }
+
+    /* ── Loading & Error states ──────────────────────────────────────── */
+    .state-center { display:flex; flex-direction:column; align-items:center; gap:16px; margin-top:32px; }
+    .spinner { width:40px; height:40px; border:2px solid rgba(0,245,255,.15); border-top-color:var(--neon-cyan); border-radius:50%; animation:spin .75s linear infinite; }
+    .error-card { background-color:var(--bg-card); border:1px solid rgba(255,7,58,.25); border-radius:16px; padding:40px 32px; text-align:center; max-width:380px; width:100%; box-shadow:0 0 30px rgba(255,7,58,.08); }
+
+    /* ── Stagger entrance ─────────────────────────────────────────────── */
+    .stagger-1 { animation:slide-in-up .4s .05s cubic-bezier(.16,1,.3,1) both; }
+    .stagger-2 { animation:slide-in-up .4s .12s cubic-bezier(.16,1,.3,1) both; }
+    .stagger-3 { animation:slide-in-up .4s .19s cubic-bezier(.16,1,.3,1) both; }
+    .stagger-4 { animation:slide-in-up .4s .26s cubic-bezier(.16,1,.3,1) both; }
+
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes slide-in-up {
+      from { transform:translateY(20px); opacity:0; }
+      to   { transform:translateY(0); opacity:1; }
     }
   `],
   template: `
-    <!-- ── Page Shell ─────────────────────────────────────────────────── -->
-    <div class="min-h-screen" style="background-color: var(--bg-dark)">
+    <div class="page">
 
-      <!-- ── Navigation Bar ───────────────────────────────────────────── -->
-      <nav
-        style="background-color: rgba(13,17,23,0.85); backdrop-filter: blur(12px);
-               border-bottom: 1px solid rgba(255,255,255,0.06);"
-        class="sticky top-0 z-50 px-6 py-3 flex items-center justify-between"
-      >
-        <!-- Logo / wordmark -->
-        <span
-          class="text-sm font-bold tracking-widest uppercase glow-cyan"
-          style="color: var(--neon-cyan)"
-        >⚡ QuizApp</span>
+      <!-- ── Navigation ─────────────────────────────────────────────── -->
+      <nav class="nav">
+        <a routerLink="/home" class="nav-logo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+               style="color:var(--neon-cyan);filter:drop-shadow(0 0 6px var(--neon-cyan))">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-logo-text">QuizApp</span>
+        </a>
 
-        <!-- Auth controls -->
-        <div class="flex items-center gap-3">
+        <div class="nav-actions">
           @if (isAuthenticated()) {
-            <!-- Authenticated state -->
             <button class="nav-btn nav-btn-ghost" routerLink="/analytics">Analytics</button>
-            <span
-              class="text-sm font-medium"
-              style="color: var(--neon-cyan)"
-            >{{ currentUser()?.username }}</span>
-            <button class="nav-btn nav-btn-logout" (click)="onLogout()">Logout</button>
+            <span class="user-badge">{{ currentUser()?.username }}</span>
+            <button class="nav-btn nav-btn-logout" (click)="onLogout()">Sign Out</button>
           } @else {
-            <!-- Guest state -->
-            <button class="nav-btn nav-btn-outline" routerLink="/login">Login</button>
+            <button class="nav-btn nav-btn-ghost" routerLink="/login">Log In</button>
             <button class="nav-btn nav-btn-filled" routerLink="/signup">Sign Up</button>
           }
         </div>
       </nav>
 
-      <!-- ── Main Content ──────────────────────────────────────────────── -->
-      <main class="flex flex-col items-center px-4 pt-16 pb-24">
+      <!-- ── Main ───────────────────────────────────────────────────── -->
+      <main class="main">
 
         <!-- Header -->
-        <header class="text-center mb-12 animate-slide-in">
-          <h1
-            class="text-4xl md:text-5xl font-black uppercase tracking-widest mb-3 glow-cyan"
-            style="color: var(--neon-cyan)"
-          >⚡ TECH QUIZ SHOWDOWN ⚡</h1>
-          <div class="header-accent mb-4"></div>
-          <p class="text-base tracking-widest uppercase" style="color: var(--text-dim, #8b949e)">
-            Choose your battleground
-          </p>
+        <header class="header">
+          <span class="eyebrow">Test Your Knowledge</span>
+          <span class="main-title">Tech Quiz Showdown</span>
+          <div class="header-accent"></div>
+          <span class="subtitle">Choose your battleground</span>
         </header>
 
-        <!-- ── Loading state ───────────────────────────────────────────── -->
+        <!-- Loading -->
         @if (fetchState() === 'loading') {
-          <div class="flex flex-col items-center gap-4 mt-8">
+          <div class="state-center">
             <div class="spinner"></div>
-            <p class="text-sm tracking-widest uppercase" style="color: var(--text-dim, #8b949e)">
+            <p style="color:var(--text-dim);font-size:.75rem;letter-spacing:.15em;text-transform:uppercase">
               Loading topics…
             </p>
           </div>
         }
 
-        <!-- ── Error state ─────────────────────────────────────────────── -->
+        <!-- Error -->
         @if (fetchState() === 'error') {
-          <div
-            class="neon-card text-center px-8 py-10 mt-8 max-w-md w-full"
-            style="border-color: rgba(255,7,58,0.3); box-shadow: 0 0 20px rgba(255,7,58,0.1)"
-          >
-            <p class="text-2xl mb-2">⚠️</p>
-            <p class="font-semibold mb-1" style="color: var(--neon-red, #ff073a)">
-              Failed to load topics
-            </p>
-            <p class="text-sm mb-6" style="color: var(--text-dim, #8b949e)">
-              {{ errorMessage() }}
-            </p>
-            <button
-              class="nav-btn nav-btn-outline"
-              (click)="loadTopics()"
-            >Retry</button>
+          <div class="state-center">
+            <div class="error-card">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                   style="color:var(--neon-red);display:block;margin:0 auto 12px">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <p style="color:var(--neon-red);font-weight:600;margin-bottom:6px">Failed to load topics</p>
+              <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:24px">{{ errorMessage() }}</p>
+              <button class="nav-btn nav-btn-outline" (click)="loadTopics()">Try Again</button>
+            </div>
           </div>
         }
 
-        <!-- ── Topic grid ──────────────────────────────────────────────── -->
+        <!-- Topic grid -->
         @if (fetchState() === 'success') {
-          <div
-            class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl animate-slide-in"
-          >
-            @for (topic of topicViewModels(); track topic.id) {
+          <div class="topic-grid">
+            @for (topic of topicViewModels(); track topic.id; let i = $index) {
               <button
-                class="topic-card p-8 flex flex-col items-center gap-4 text-center"
+                class="topic-card"
                 [class.react-card]="topic.slug === 'react'"
                 [class.angular-card]="topic.slug === 'angular'"
                 [class.typescript-card]="topic.slug === 'typescript'"
                 [class.system-design-card]="topic.slug === 'system-design'"
+                [class.stagger-1]="i === 0"
+                [class.stagger-2]="i === 1"
+                [class.stagger-3]="i === 2"
+                [class.stagger-4]="i === 3"
                 (click)="onTopicSelect(topic)"
                 type="button"
               >
-                <!-- Icon -->
-                <span class="text-6xl leading-none select-none">{{ topic.icon }}</span>
+                <!-- SVG icon per slug -->
+                <div class="topic-icon-wrap" [style.color]="topic.glowColor">
+                  @switch (topic.slug) {
+                    @case ('react') {
+                      <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                        <circle cx="24" cy="24" r="4" fill="currentColor"/>
+                        <ellipse cx="24" cy="24" rx="20" ry="7" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <ellipse cx="24" cy="24" rx="20" ry="7" stroke="currentColor" stroke-width="2" fill="none" transform="rotate(60 24 24)"/>
+                        <ellipse cx="24" cy="24" rx="20" ry="7" stroke="currentColor" stroke-width="2" fill="none" transform="rotate(-60 24 24)"/>
+                      </svg>
+                    }
+                    @case ('angular') {
+                      <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                        <path d="M24 4L7 10.5l2.6 22.4L24 44l14.4-11.1L41 10.5z" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+                        <path d="M17 31l4-10h6l4 10M19 27h10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    }
+                    @case ('typescript') {
+                      <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                        <rect x="5" y="5" width="38" height="38" rx="6" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                        <path d="M14 24h9M18 19v10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M28 19h7M31 19v10M31 29h6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                      </svg>
+                    }
+                    @case ('system-design') {
+                      <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                        <circle cx="24" cy="10" r="5" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                        <circle cx="10" cy="36" r="5" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                        <circle cx="38" cy="36" r="5" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                        <line x1="24" y1="15" x2="12" y2="31" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="24" y1="15" x2="36" y2="31" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="15" y1="36" x2="33" y2="36" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 2.5"/>
+                      </svg>
+                    }
+                    @default {
+                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    }
+                  }
+                </div>
 
-                <!-- Topic name -->
-                <span
-                  class="text-xl font-bold uppercase tracking-widest"
-                  [style]="topic.textColorStyle"
-                >{{ topic.name }}</span>
+                <span class="topic-name" [style]="topic.textColorStyle">{{ topic.name }}</span>
 
-                <!-- Divider -->
-                <div
-                  class="w-10 h-px"
-                  [style]="'background-color: ' + topic.glowColor + '; opacity: 0.4'"
-                ></div>
+                <div class="topic-divider" [style.background-color]="topic.glowColor"></div>
 
-                <!-- PLAY label -->
-                <span class="play-label tracking-widest uppercase">▶ PLAY</span>
+                <div class="play-row">
+                  <span>Play</span>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
               </button>
             }
           </div>
@@ -282,55 +405,38 @@ function toViewModel(topic: Topic): TopicViewModel {
   `,
 })
 export class HomeComponent implements OnInit {
-  // ── DI ───────────────────────────────────────────────────────────────────
-  private readonly http        = inject(HttpClient);
-  private readonly router      = inject(Router);
-  private readonly destroyRef  = inject(DestroyRef);
-  readonly authService         = inject(AuthService);
+  private readonly http       = inject(HttpClient);
+  private readonly router     = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly authService        = inject(AuthService);
 
-  // ── Auth convenience aliases (expose signals directly for template) ──────
   readonly isAuthenticated = this.authService.isAuthenticated;
   readonly currentUser     = this.authService.currentUser;
 
-  // ── Fetch state signals ───────────────────────────────────────────────────
-  readonly fetchState    = signal<FetchState>('loading');
-  readonly topics        = signal<Topic[]>([]);
-  readonly errorMessage  = signal<string>('Something went wrong. Please try again.');
+  readonly fetchState   = signal<FetchState>('loading');
+  readonly topics       = signal<Topic[]>([]);
+  readonly errorMessage = signal<string>('Something went wrong. Please try again.');
 
-  // ── Derived view-model (only recomputed when topics signal changes) ───────
-  // Using computed() here is a micro-optimisation: the mapping runs once per
-  // fetch, not on every change-detection cycle.
   readonly topicViewModels = computed<TopicViewModel[]>(() =>
     this.topics().map(toViewModel)
   );
 
-  // ─────────────────────────────────────────────────────────────────────────
-
-  ngOnInit(): void {
-    this.loadTopics();
-  }
+  ngOnInit(): void { this.loadTopics(); }
 
   loadTopics(): void {
     this.fetchState.set('loading');
     this.errorMessage.set('Something went wrong. Please try again.');
-
-    // takeUntilDestroyed(this.destroyRef) cancels the HTTP request if the
-    // component is destroyed mid-flight (e.g. user navigates away quickly).
     this.http
       .get<TopicsResponse>('/api/topics')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
-          this.topics.set(res.topics);
-          this.fetchState.set('success');
-        },
+        next:  (res) => { this.topics.set(res.topics); this.fetchState.set('success'); },
         error: (err: unknown) => {
           const message =
-            err instanceof Error
-              ? err.message
-              : typeof err === 'object' && err !== null && 'message' in err
-                ? String((err as { message: unknown }).message)
-                : 'Network error. Please check your connection.';
+            err instanceof Error ? err.message
+            : typeof err === 'object' && err !== null && 'message' in err
+              ? String((err as { message: unknown }).message)
+              : 'Network error. Please check your connection.';
           this.errorMessage.set(message);
           this.fetchState.set('error');
         },
@@ -343,7 +449,5 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  async onLogout(): Promise<void> {
-    await this.authService.logout();
-  }
+  async onLogout(): Promise<void> { await this.authService.logout(); }
 }
