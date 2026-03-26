@@ -462,7 +462,10 @@ function topicColor(slug: string): string {
               </span>
               <div class="lb-user">
                 <p class="lb-username">{{ entry.username }}</p>
-                <p class="lb-topic">{{ entry.topicName }}</p>
+                <p class="lb-topic">
+                  {{ entry.topicName }}
+                  <span class="attempt-badge" [style.color]="difficultyColor(entry.difficulty)">{{ entry.difficulty }}</span>
+                </p>
               </div>
               <span class="lb-score">{{ entry.score }}/{{ entry.totalQuestions }}</span>
             </div>
@@ -528,9 +531,9 @@ export class AnalyticsComponent implements OnInit {
       ? `/api/leaderboard?topic=${topic}&limit=10`
       : '/api/leaderboard?limit=10';
     const data = await firstValueFrom(
-      this.http.get<LeaderboardEntry[]>(url),
-    ).catch(() => []);
-    this.leaderboard.set(data);
+      this.http.get<{ entries: LeaderboardEntry[] }>(url),
+    ).catch(() => ({ entries: [] as LeaderboardEntry[] }));
+    this.leaderboard.set(data.entries);
     this.leaderboardLoading.set(false);
   }
 
@@ -588,6 +591,12 @@ export class AnalyticsComponent implements OnInit {
     if (rank === 1) return '#ffd700';
     if (rank === 2) return '#c0c0c0';
     return '#cd7f32';
+  }
+
+  difficultyColor(d: string): string {
+    if (d === 'EASY') return '#4ade80';
+    if (d === 'HARD') return '#f87171';
+    return '#fbbf24';
   }
 
   goHome(): void { this.router.navigate(['/home']); }

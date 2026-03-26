@@ -131,7 +131,7 @@ type PageState = 'loading' | 'ready' | 'revealing' | 'submitting' | 'error';
         </div>
 
         <!-- Next / Submit -->
-        <div *ngIf="state() === 'revealing'" class="next-wrap">
+        <div *ngIf="(state() === 'ready' && selectedIndex() !== null) || state() === 'revealing'" class="next-wrap">
           <app-neon-button variant="cyan" (click)="advance()" [disabled]="state() === 'submitting'">
             {{ quizState.isLastQuestion() ? 'See Results' : 'Next Question' }}
           </app-neon-button>
@@ -190,11 +190,7 @@ export class QuizComponent implements OnInit {
 
   onOptionSelected(index: number): void {
     if (this.state() !== 'ready') return;
-    const timeTaken = Math.min(Math.round((Date.now() - this.questionStartTime) / 1000), 60);
-    const q = this.quizState.currentQuestion();
     this.selectedIndex.set(index);
-    this.pendingAnswers.push({ questionId: q.id, selectedIndex: index, timeTaken, isCorrect: false });
-    this.state.set('revealing');
   }
 
   onTimeUp(): void {
@@ -206,6 +202,14 @@ export class QuizComponent implements OnInit {
   }
 
   async advance(): Promise<void> {
+    // Record the answer when the user confirms via Next (not on initial click).
+    // In the 'revealing' state (timer expired), the answer was already recorded by onTimeUp.
+    if (this.state() === 'ready') {
+      const timeTaken = Math.min(Math.round((Date.now() - this.questionStartTime) / 1000), 60);
+      const q = this.quizState.currentQuestion();
+      this.pendingAnswers.push({ questionId: q.id, selectedIndex: this.selectedIndex()!, timeTaken, isCorrect: false });
+    }
+
     if (this.quizState.isLastQuestion()) {
       await this.submitQuiz();
     } else {
