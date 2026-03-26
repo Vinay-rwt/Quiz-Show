@@ -528,9 +528,9 @@ export class AnalyticsComponent implements OnInit {
       ? `/api/leaderboard?topic=${topic}&limit=10`
       : '/api/leaderboard?limit=10';
     const data = await firstValueFrom(
-      this.http.get<LeaderboardEntry[]>(url),
-    ).catch(() => []);
-    this.leaderboard.set(data);
+      this.http.get<{ entries: LeaderboardEntry[] }>(url),
+    ).catch(() => ({ entries: [] as LeaderboardEntry[] }));
+    this.leaderboard.set(data.entries);
     this.leaderboardLoading.set(false);
   }
 
