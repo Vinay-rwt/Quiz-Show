@@ -1,12 +1,13 @@
 import type { Difficulty } from './question';
 import type { TopicSlug } from './topic';
 
-// One answered question tracked on the frontend during a live quiz
+// One answered question sent to POST /api/quiz/submit.
+// isCorrect is intentionally absent — the server always recomputes it from
+// the stored correct index and must never trust a client-supplied value.
 export interface AnswerRecord {
   questionId: string;
   selectedIndex: number; // -1 = timed out / skipped
   timeTaken: number;     // seconds (max 60)
-  isCorrect: boolean;
 }
 
 // Sent to POST /api/quiz/submit

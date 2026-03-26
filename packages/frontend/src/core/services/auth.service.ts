@@ -60,8 +60,13 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
-    await firstValueFrom(this.http.post('/api/auth/logout', {}));
-    this.currentUser.set(null);
-    this.router.navigate(['/home']);
+    try {
+      await firstValueFrom(this.http.post('/api/auth/logout', {}));
+    } finally {
+      // Always clear local state and redirect even if the API call fails,
+      // so the UI never stays stuck in a logged-in state after a network error.
+      this.currentUser.set(null);
+      this.router.navigate(['/home']);
+    }
   }
 }

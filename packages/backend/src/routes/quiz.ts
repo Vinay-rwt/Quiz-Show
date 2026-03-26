@@ -4,19 +4,21 @@ import { Difficulty } from '@prisma/client';
 import { optionalAuth } from '../middleware/auth';
 import { scoreAndPersistQuiz } from '../services/quizService';
 import { BadRequestError } from '../utils/errors';
-import type { TopicSlug } from '@quizapp/shared';
 
 export const quizRouter = Router();
 
+// isCorrect is intentionally absent: correctness is always recomputed server-side
+// and must not be trusted from the client.
 const answerSchema = z.object({
   questionId: z.string().min(1),
   selectedIndex: z.number().int().min(-1).max(3), // -1 = timed out
   timeTaken: z.number().int().min(0).max(60),
-  isCorrect: z.boolean(),
 });
 
 const submitSchema = z.object({
-  topicSlug: z.string().min(1),
+  // Validated as a strict enum so invalid slugs are rejected at the schema layer,
+  // not silently passed through to a DB lookup.
+  topicSlug: z.enum(['react', 'angular', 'typescript', 'system-design']),
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
   answers: z.array(answerSchema).min(1).max(15),
 });
@@ -34,7 +36,6 @@ quizRouter.post('/submit', optionalAuth, async (req, res, next) => {
     const result = await scoreAndPersistQuiz(
       {
         ...body.data,
-        topicSlug: body.data.topicSlug as TopicSlug,
         difficulty: body.data.difficulty as Difficulty,
       },
       req.user?.userId,

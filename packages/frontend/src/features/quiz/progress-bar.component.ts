@@ -1,6 +1,9 @@
 import { Component, Input, computed, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
+// Expose normalized signals for template use so the displayed values always
+// reflect the clamped state from ngOnChanges, not the raw @Input values.
+
 @Component({
   selector: 'app-progress-bar',
   standalone: true,
@@ -16,10 +19,10 @@ import { DecimalPipe } from '@angular/common';
             [style.color]="'var(--neon-cyan)'"
             [style.text-shadow]="'0 0 8px var(--neon-cyan)'"
           >
-            {{ current }}
+            {{ _current() }}
           </span>
           of
-          <span class="text-white/60">{{ total }}</span>
+          <span class="text-white/60">{{ _total() }}</span>
         </span>
 
         <!-- Percentage badge -->
@@ -37,7 +40,7 @@ import { DecimalPipe } from '@angular/common';
       </div>
 
       <!-- Dot indicators for step-awareness (optional, gracefully hidden when total > 20) -->
-      @if (total <= 20) {
+      @if (_total() <= 20) {
         <div class="flex gap-1 mt-0.5" aria-hidden="true">
           @for (step of steps(); track step.index) {
             <div
@@ -65,8 +68,8 @@ export class ProgressBarComponent implements OnChanges {
   @Input({ required: true }) total!: number;
 
   // ── Internal signals (kept in sync via ngOnChanges) ──────────────────────
-  private readonly _current = signal<number>(1);
-  private readonly _total = signal<number>(1);
+  readonly _current = signal<number>(1);
+  readonly _total = signal<number>(1);
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['current']) {

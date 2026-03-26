@@ -10,8 +10,14 @@ leaderboardRouter.get('/', async (req, res, next) => {
   try {
     const { topic, limit } = req.query;
 
-    const parsedLimit = limit ? parseInt(limit as string, 10) : 10;
-    if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 50) {
+    // Use strict digit-only check before parsing — parseInt('10abc') would silently
+    // return 10 and bypass the NaN guard.
+    const rawLimit = typeof limit === 'string' ? limit : '10';
+    if (!/^\d+$/.test(rawLimit)) {
+      throw new BadRequestError('"limit" must be a number between 1 and 50');
+    }
+    const parsedLimit = parseInt(rawLimit, 10);
+    if (parsedLimit < 1 || parsedLimit > 50) {
       throw new BadRequestError('"limit" must be a number between 1 and 50');
     }
 
