@@ -1,3 +1,4 @@
+import type { Difficulty } from './question';
 import type { TopicSlug } from './topic';
 
 export interface TopicAccuracy {
@@ -21,6 +22,7 @@ export interface LeaderboardEntry {
   username: string;
   topicSlug: TopicSlug;
   topicName: string;
+  difficulty: Difficulty;
   score: number;
   totalQuestions: number;
   completedAt: string;

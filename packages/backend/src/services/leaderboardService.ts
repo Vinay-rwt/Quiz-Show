@@ -7,6 +7,7 @@ interface RawLeaderboardRow {
   username: string;
   topic_slug: string;
   topic_name: string;
+  difficulty: string;
   score: number;
   total_questions: number;
   completed_at: Date;
@@ -33,6 +34,7 @@ export async function getLeaderboard(
         qa.score,
         qa.total_questions,
         qa.completed_at,
+        qa.difficulty,
         COALESCE(SUM(qat.time_taken), 0) AS total_time
       FROM quiz_attempts qa
       JOIN users u ON qa.user_id = u.id
@@ -40,13 +42,14 @@ export async function getLeaderboard(
       LEFT JOIN question_attempts qat ON qat.quiz_attempt_id = qa.id
       WHERE qa.user_id IS NOT NULL
         ${topicFilter}
-      GROUP BY qa.id, u.username, t.slug, t.name
+      GROUP BY qa.id, u.username, t.slug, t.name, qa.difficulty
     )
     SELECT
       RANK() OVER (ORDER BY score DESC, total_time ASC) AS rank,
       username,
       topic_slug,
       topic_name,
+      difficulty,
       score,
       total_questions,
       completed_at
@@ -60,6 +63,7 @@ export async function getLeaderboard(
     username: row.username,
     topicSlug: row.topic_slug as LeaderboardEntry['topicSlug'],
     topicName: row.topic_name,
+    difficulty: row.difficulty as LeaderboardEntry['difficulty'],
     score: row.score,
     totalQuestions: row.total_questions,
     completedAt: row.completed_at.toISOString(),
