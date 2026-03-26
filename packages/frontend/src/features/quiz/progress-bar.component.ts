@@ -92,34 +92,21 @@ export class ProgressBarComponent implements OnChanges {
   readonly _total = signal<number>(1);
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['current']) {
-      this._current.set(Math.max(1, this.current));
-    }
-    if (changes['total']) {
-      this._total.set(Math.max(1, this.total));
-    }
+    if (changes['current']) this._current.set(Math.max(1, this.current));
+    if (changes['total'])   this._total.set(Math.max(1, this.total));
   }
 
-  // ── Derived state ─────────────────────────────────────────────────────────
-
-  /** Percentage complete (0–100), clamped. */
   readonly fillPercent = computed(() => {
     const pct = (this._current() / this._total()) * 100;
     return Math.min(100, Math.max(0, pct));
   });
 
-  /** CSS width string, e.g. "50.00%" */
   readonly fillWidth = computed(() => `${this.fillPercent().toFixed(2)}%`);
 
-  /** Accessible label for screen readers. */
   readonly ariaLabel = computed(
     () => `Quiz progress: question ${this._current()} of ${this._total()}`
   );
 
-  /**
-   * Step metadata for the dot indicators.
-   * Only rendered when total <= 20 (template guard).
-   */
   readonly steps = computed(() =>
     Array.from({ length: this._total() }, (_, i) => ({
       index: i,

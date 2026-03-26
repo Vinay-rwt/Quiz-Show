@@ -26,56 +26,159 @@ type OptionState =
   selector: 'app-question-card',
   standalone: true,
   imports: [NgClass],
+  styles: [`
+    :host { display: block; }
+
+    /* ── Card wrapper ───────────────────────────────────────────── */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: border-color .25s ease, box-shadow .25s ease;
+    }
+
+    /* ── Question text ──────────────────────────────────────────── */
+    .question-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      line-height: 1.6;
+      color: rgba(240,246,252,0.95);
+      font-family: var(--font-heading, 'Space Grotesk', system-ui);
+    }
+
+    /* ── Options list ───────────────────────────────────────────── */
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── Option button base ─────────────────────────────────────── */
+    .option-btn {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      text-align: left;
+      font-size: 0.9rem;
+      font-weight: 500;
+      background-color: var(--bg-card);
+      color: rgba(240,246,252,0.9);
+      cursor: pointer;
+      transition: border-color .2s, box-shadow .2s, background-color .2s, opacity .2s;
+    }
+    .option-btn:disabled { cursor: not-allowed; }
+    .option-btn:focus-visible {
+      outline: 2px solid var(--neon-cyan);
+      outline-offset: 3px;
+    }
+
+    /* hover only when answerable */
+    .option-btn:not([disabled]):not(.option-selected):not(.option-correct):not(.option-wrong):not(.option-dim):hover {
+      border-color: rgba(0,245,255,0.45);
+      box-shadow: 0 0 14px rgba(0,245,255,0.15);
+      background-color: rgba(0,245,255,0.03);
+    }
+
+    /* ── Option states ──────────────────────────────────────────── */
+    .option-selected {
+      border-color: var(--neon-cyan) !important;
+      box-shadow: 0 0 12px rgba(0,245,255,0.2);
+    }
+    .option-correct {
+      border-color: var(--neon-green) !important;
+      box-shadow: 0 0 16px rgba(57,255,20,0.3);
+      color: var(--neon-green);
+    }
+    .option-wrong {
+      border-color: var(--neon-red) !important;
+      box-shadow: 0 0 16px rgba(255,7,58,0.3);
+      color: var(--neon-red);
+    }
+    .option-dim {
+      border-color: rgba(255,255,255,0.04) !important;
+      opacity: 0.3;
+    }
+
+    /* ── Letter badge ───────────────────────────────────────────── */
+    .badge {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: background-color .2s, color .2s;
+    }
+    .badge-default  { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+    .badge-selected { background: rgba(0,245,255,0.15);   color: var(--neon-cyan); }
+    .badge-correct  { background: rgba(57,255,20,0.15);   color: var(--neon-green); }
+    .badge-wrong    { background: rgba(255,7,58,0.15);    color: var(--neon-red); }
+    .badge-dim      { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.15); }
+
+    /* ── Option text ────────────────────────────────────────────── */
+    .option-text {
+      flex: 1;
+      line-height: 1.4;
+    }
+
+    /* ── Reveal icon ────────────────────────────────────────────── */
+    .reveal-icon { flex-shrink: 0; }
+  `],
   template: `
-    <div class="neon-card animate-slide-in p-6 flex flex-col gap-6">
+    <div class="card">
 
-      <!-- ── Question text ──────────────────────────────────────────────── -->
-      <h2 class="text-xl sm:text-2xl font-semibold leading-snug text-white/95">
-        {{ question.text }}
-      </h2>
+      <!-- ── Question text ──────────────────────────────────────────── -->
+      <h2 class="question-text">{{ question.text }}</h2>
 
-      <!-- ── Option buttons ────────────────────────────────────────────── -->
-      <div class="flex flex-col gap-3" role="group" aria-label="Answer options">
+      <!-- ── Option buttons ──────────────────────────────────────────── -->
+      <div class="options-list" role="group" aria-label="Answer options">
         @for (option of question.options; track option.text; let i = $index) {
           <button
             type="button"
+            class="option-btn"
             [disabled]="isInteractionDisabled()"
             (click)="handleOptionClick(i)"
             [attr.aria-pressed]="selectedIndex === i"
             [attr.aria-label]="optionLabel(i, option.text)"
             [ngClass]="optionClasses(i)"
-            class="
-              relative w-full flex items-center gap-4
-              px-4 py-3 rounded-xl
-              border text-left
-              font-medium text-sm sm:text-base
-              transition-all duration-200
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--neon-cyan]
-              disabled:cursor-not-allowed
-            "
           >
             <!-- Letter badge -->
-            <span
-              class="
-                flex-shrink-0 w-8 h-8 rounded-full
-                flex items-center justify-center
-                text-xs font-bold
-                transition-colors duration-200
-              "
-              [ngClass]="badgeClasses(i)"
-            >
-              {{ LABELS[i] }}
-            </span>
+            <span class="badge" [ngClass]="badgeClasses(i)">{{ LABELS[i] }}</span>
 
             <!-- Option text -->
-            <span class="flex-1">{{ option.text }}</span>
+            <span class="option-text">{{ option.text }}</span>
 
             <!-- Reveal icons -->
             @if (correctIndex !== null) {
               @if (i === correctIndex) {
-                <span class="flex-shrink-0 text-[--neon-green] text-lg" aria-hidden="true">✓</span>
+                <span class="reveal-icon" aria-hidden="true" style="color: var(--neon-green)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                    <path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2.2"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
               } @else if (i === selectedIndex) {
-                <span class="flex-shrink-0 text-[--neon-red] text-lg" aria-hidden="true">✗</span>
+                <span class="reveal-icon" aria-hidden="true" style="color: var(--neon-red)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                    <path d="m9 9 6 6M15 9l-6 6" stroke="currentColor" stroke-width="2.2"
+                          stroke-linecap="round"/>
+                  </svg>
+                </span>
               }
             }
           </button>
@@ -84,102 +187,31 @@ type OptionState =
 
     </div>
   `,
-  styles: [`
-    :host { display: block; }
-
-    /* Hover glow — only when the question is still answerable */
-    button:not([disabled]):not(.option-selected):not(.option-correct):not(.option-wrong):not(.option-dim):hover {
-      border-color: rgba(0, 245, 255, 0.5);
-      box-shadow: 0 0 12px rgba(0, 245, 255, 0.2);
-    }
-
-    /* Correct state */
-    .option-correct {
-      border-color: var(--neon-green) !important;
-      box-shadow: 0 0 14px rgba(57, 255, 20, 0.35);
-      color: var(--neon-green);
-    }
-
-    /* Wrong (selected but incorrect) */
-    .option-wrong {
-      border-color: var(--neon-red) !important;
-      box-shadow: 0 0 14px rgba(255, 7, 58, 0.35);
-      color: var(--neon-red);
-    }
-
-    /* Dim (unselected, not correct, after reveal) */
-    .option-dim {
-      border-color: rgba(255, 255, 255, 0.05) !important;
-      opacity: 0.35;
-    }
-
-    /* Selected (before reveal) */
-    .option-selected {
-      border-color: var(--neon-cyan) !important;
-      box-shadow: 0 0 10px rgba(0, 245, 255, 0.25);
-    }
-  `],
 })
 export class QuestionCardComponent implements OnChanges {
-  // ── Public constant exposed to the template ──────────────────────────────
   readonly LABELS = OPTION_LABELS;
 
-  // ── Inputs ────────────────────────────────────────────────────────────────
-  /** The question to display (from @quizapp/shared). */
   @Input({ required: true }) question!: QuestionForQuiz;
-
-  /**
-   * Index of the option the user has selected.
-   * `null` means the user has not yet answered.
-   */
   @Input() selectedIndex: number | null = null;
-
-  /**
-   * Index of the correct answer.
-   * `null` until the host reveals the answer after submission.
-   */
   @Input() correctIndex: number | null = null;
-
-  /**
-   * When `true`, all option buttons are disabled (e.g. advancing to next question).
-   */
   @Input() disabled = false;
 
-  // ── Output ────────────────────────────────────────────────────────────────
-  /** Emits the zero-based index of the option the user chose. */
   @Output() optionSelected = new EventEmitter<number>();
 
-  // ── Internal signals ──────────────────────────────────────────────────────
   private readonly _selectedIndex = signal<number | null>(null);
   private readonly _correctIndex = signal<number | null>(null);
   private readonly _disabled = signal<boolean>(false);
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedIndex']) {
-      this._selectedIndex.set(this.selectedIndex);
-    }
-    if (changes['correctIndex']) {
-      this._correctIndex.set(this.correctIndex);
-    }
-    if (changes['disabled']) {
-      this._disabled.set(this.disabled);
-    }
+    if (changes['selectedIndex']) this._selectedIndex.set(this.selectedIndex);
+    if (changes['correctIndex'])  this._correctIndex.set(this.correctIndex);
+    if (changes['disabled'])      this._disabled.set(this.disabled);
   }
 
-  // ── Derived state ─────────────────────────────────────────────────────────
-
-  /**
-   * Interaction is disabled when:
-   * - the host sets `disabled=true`, OR
-   * - the user has already selected an answer (prevent double-click)
-   */
   readonly isInteractionDisabled = computed(
     () => this._disabled() || this._selectedIndex() !== null
   );
 
-  // ── State computation helpers ─────────────────────────────────────────────
-
-  /** Compute the semantic state for a given option index. */
   private getOptionState(index: number): OptionState {
     const selected = this._selectedIndex();
     const correct = this._correctIndex();
@@ -189,48 +221,35 @@ export class QuestionCardComponent implements OnChanges {
       return selected === index ? 'selected' : 'default';
     }
 
-    // Answer has been revealed
     if (index === correct) return 'correct';
     if (index === selected) return 'wrong';
     return 'dim';
   }
 
-  /** Tailwind + custom CSS class map for the option button element. */
   optionClasses(index: number): Record<string, boolean> {
     const state = this.getOptionState(index);
     return {
-      // Base colours
-      'bg-[#0d1117]': true,
-      'text-white': state === 'default' || state === 'selected',
-      'border-white/20': state === 'default',
-
-      // State-driven classes
-      'option-default': state === 'default',
-      'option-selected': state === 'selected',
+      'option-selected':              state === 'selected',
       'option-correct animate-correct': state === 'correct',
-      'option-wrong animate-wrong': state === 'wrong',
-      'option-dim': state === 'dim',
+      'option-wrong animate-wrong':     state === 'wrong',
+      'option-dim':                   state === 'dim',
     };
   }
 
-  /** Class map for the circular letter badge inside each button. */
   badgeClasses(index: number): Record<string, boolean> {
     const state = this.getOptionState(index);
     return {
-      'bg-white/10 text-white/70': state === 'default',
-      'bg-[--neon-cyan]/20 text-[--neon-cyan]': state === 'selected',
-      'bg-[--neon-green]/20 text-[--neon-green]': state === 'correct',
-      'bg-[--neon-red]/20 text-[--neon-red]': state === 'wrong',
-      'bg-white/5 text-white/20': state === 'dim',
+      'badge-default':  state === 'default',
+      'badge-selected': state === 'selected',
+      'badge-correct':  state === 'correct',
+      'badge-wrong':    state === 'wrong',
+      'badge-dim':      state === 'dim',
     };
   }
 
-  /** Accessible label for screen readers (e.g. "Option A: Paris"). */
   optionLabel(index: number, text: string): string {
     return `Option ${OPTION_LABELS[index]}: ${text}`;
   }
-
-  // ── Event handling ────────────────────────────────────────────────────────
 
   handleOptionClick(index: number): void {
     if (this.isInteractionDisabled()) return;

@@ -1,23 +1,30 @@
 import { Component, Input } from '@angular/core';
-import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-loading-spinner',
   standalone: true,
-  imports: [NgClass],
+  styles: [`
+    .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .spinner {
+      border-radius: 50%;
+      border: 2px solid rgba(0,245,255,0.2);
+      border-top-color: var(--neon-cyan);
+      animation: spin .7s linear infinite;
+    }
+    .sm   { width: 24px;  height: 24px; }
+    .md   { width: 40px;  height: 40px; }
+    .full { width: 64px;  height: 64px; }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  `],
   template: `
-    <div
-      class="flex items-center justify-center"
-      [style.height]="size === 'full' ? '100vh' : 'auto'"
-    >
-      <div
-        class="rounded-full border-2 border-[#00f5ff]/20 border-t-[#00f5ff] animate-spin"
-        [ngClass]="{
-          'w-6 h-6':   size === 'sm',
-          'w-10 h-10': size === 'md',
-          'w-16 h-16': size === 'full'
-        }"
-      ></div>
+    <div class="wrap" [style.height]="size === 'full' ? '100vh' : 'auto'">
+      <div class="spinner" [class]="size"></div>
     </div>
   `,
 })

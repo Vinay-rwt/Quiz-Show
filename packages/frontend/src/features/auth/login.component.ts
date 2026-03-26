@@ -9,25 +9,114 @@ import { NeonButtonComponent } from '../../shared/components/neon-button.compone
   selector: 'app-login',
   standalone: true,
   imports: [FormsModule, NgIf, RouterLink, NeonButtonComponent],
+  styles: [`
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background-color: var(--bg-dark);
+    }
+    .card {
+      width: 100%;
+      max-width: 360px;
+      animation: slide-in-up .4s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .title {
+      font-family: var(--font-heading, 'Space Grotesk', system-ui);
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 20px var(--neon-cyan);
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 0.875rem;
+      color: var(--text-dim);
+    }
+    .form { display: flex; flex-direction: column; gap: 16px; }
+    .field { display: flex; flex-direction: column; gap: 8px; }
+    .field-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .neon-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #f0f6fc;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      box-sizing: border-box;
+    }
+    .neon-input::placeholder { color: rgba(240,246,252,0.3); }
+    .neon-input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 12px rgba(0,245,255,0.2);
+    }
+    .error-msg {
+      font-size: 0.875rem;
+      color: #f87171;
+      text-align: center;
+    }
+    app-neon-button { display: block; }
+    app-neon-button button { width: 100%; }
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.875rem;
+      color: var(--text-dim);
+    }
+    .footer-link {
+      color: var(--neon-cyan);
+      font-weight: 600;
+      margin-left: 4px;
+      text-decoration: none;
+    }
+    .footer-link:hover { text-decoration: underline; }
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 12px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-decoration: none;
+    }
+    .back-link:hover { text-decoration: underline; }
+    @keyframes slide-in-up {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+  `],
   template: `
-    <div class="min-h-screen flex items-center justify-center px-4"
-         style="background-color: var(--bg-dark)">
-      <div class="w-full max-w-sm animate-slide-in">
+    <div class="page">
+      <div class="card">
 
         <!-- Header -->
-        <div class="text-center mb-8">
-          <h1 class="text-3xl font-black tracking-widest uppercase glow-cyan mb-2"
-              style="color: var(--neon-cyan)">Sign In</h1>
-          <p class="text-sm" style="color: var(--text-dim)">Welcome back, contestant</p>
+        <div class="header">
+          <h1 class="title">Sign In</h1>
+          <p class="subtitle">Welcome back, contestant</p>
         </div>
 
         <!-- Form -->
-        <form (ngSubmit)="onSubmit()" novalidate class="space-y-4">
+        <form (ngSubmit)="onSubmit()" novalidate class="form">
 
           <!-- Email -->
-          <div>
-            <label class="block text-xs font-semibold tracking-widest uppercase mb-2"
-                   style="color: var(--text-dim)">Email</label>
+          <div class="field">
+            <label class="field-label">Email</label>
             <input
               type="email"
               name="email"
@@ -35,14 +124,13 @@ import { NeonButtonComponent } from '../../shared/components/neon-button.compone
               required
               autocomplete="email"
               placeholder="you@example.com"
-              class="neon-input w-full"
+              class="neon-input"
             />
           </div>
 
           <!-- Password -->
-          <div>
-            <label class="block text-xs font-semibold tracking-widest uppercase mb-2"
-                   style="color: var(--text-dim)">Password</label>
+          <div class="field">
+            <label class="field-label">Password</label>
             <input
               type="password"
               name="password"
@@ -50,21 +138,18 @@ import { NeonButtonComponent } from '../../shared/components/neon-button.compone
               required
               autocomplete="current-password"
               placeholder="••••••••"
-              class="neon-input w-full"
+              class="neon-input"
             />
           </div>
 
           <!-- Error -->
-          <p *ngIf="errorMsg()" class="text-sm text-red-400 text-center">
-            {{ errorMsg() }}
-          </p>
+          <p *ngIf="errorMsg()" class="error-msg">{{ errorMsg() }}</p>
 
           <!-- Submit -->
           <app-neon-button
             type="submit"
             variant="cyan"
             [disabled]="auth.isLoading() || !email || !password"
-            class="w-full block"
           >
             {{ auth.isLoading() ? 'Signing in…' : 'Sign In' }}
           </app-neon-button>
@@ -72,38 +157,15 @@ import { NeonButtonComponent } from '../../shared/components/neon-button.compone
         </form>
 
         <!-- Footer links -->
-        <p class="text-center mt-6 text-sm" style="color: var(--text-dim)">
+        <p class="footer">
           No account?
-          <a routerLink="/signup" style="color: var(--neon-cyan)"
-             class="font-semibold hover:underline ml-1">Create one</a>
+          <a routerLink="/signup" class="footer-link">Create one</a>
         </p>
-        <p class="text-center mt-3">
-          <a routerLink="/home" class="text-xs hover:underline"
-             style="color: var(--text-dim)">← Back to home</a>
-        </p>
+        <a routerLink="/home" class="back-link">← Back to home</a>
 
       </div>
     </div>
   `,
-  styles: [`
-    .neon-input {
-      background: var(--bg-card, #0d1117);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: #f0f6fc;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .neon-input::placeholder { color: rgba(240,246,252,0.3); }
-    .neon-input:focus {
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 12px rgba(0,245,255,0.2);
-    }
-    app-neon-button { display: block; }
-    app-neon-button button { width: 100%; }
-  `],
 })
 export class LoginComponent {
   readonly auth = inject(AuthService);
