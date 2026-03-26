@@ -48,9 +48,9 @@ import { DecimalPipe } from '@angular/common';
             style="font-weight:700"
             [style.color]="'var(--neon-cyan)'"
             [style.text-shadow]="'0 0 8px var(--neon-cyan)'"
-          >{{ current }}</span>
+          >{{ _current() }}</span>
           of
-          <span style="color: rgba(255,255,255,0.6)">{{ total }}</span>
+          <span style="color: rgba(255,255,255,0.6)">{{ _total() }}</span>
         </span>
 
         <!-- Percentage badge -->
@@ -62,8 +62,8 @@ import { DecimalPipe } from '@angular/common';
         <div class="progress-bar-fill" [style.width]="fillWidth()"></div>
       </div>
 
-      <!-- Dot indicators -->
-      @if (total <= 20) {
+      <!-- Dot indicators (hidden when total > 20) -->
+      @if (_total() <= 20) {
         <div class="dots-row" aria-hidden="true">
           @for (step of steps(); track step.index) {
             <div
@@ -87,8 +87,9 @@ export class ProgressBarComponent implements OnChanges {
   /** Total number of questions. */
   @Input({ required: true }) total!: number;
 
-  private readonly _current = signal<number>(1);
-  private readonly _total = signal<number>(1);
+  // ── Internal signals (kept in sync via ngOnChanges) ──────────────────────
+  readonly _current = signal<number>(1);
+  readonly _total = signal<number>(1);
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['current']) this._current.set(Math.max(1, this.current));

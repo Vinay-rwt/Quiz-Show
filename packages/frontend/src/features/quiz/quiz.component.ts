@@ -173,6 +173,11 @@ export class QuizComponent implements OnInit {
           `/api/questions?topic=${topic}&difficulty=${difficulty}&count=10`,
         ),
       );
+      if (res.questions.length === 0) {
+        this.errorMessage.set('No questions are available for this topic and difficulty yet.');
+        this.state.set('error');
+        return;
+      }
       this.quizState.startQuiz(topic, topicName, difficulty, res.questions);
       this.pendingAnswers = [];
       this.questionStartTime = Date.now();

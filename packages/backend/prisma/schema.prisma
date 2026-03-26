@@ -62,10 +62,11 @@ model User {
 
 model QuizAttempt {
   id             String     @id @default(cuid())
-  // Nullable: guest attempts are never written to DB.
-  // Only authenticated users have attempts persisted.
-  userId         String?    @map("user_id")
-  user           User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Non-nullable: guest attempts are never written to DB.
+  // The service guards against persisting without a userId, so every row
+  // in this table belongs to an authenticated user.
+  userId         String     @map("user_id")
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   topicId        String     @map("topic_id")
   topic          Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
   difficulty     Difficulty

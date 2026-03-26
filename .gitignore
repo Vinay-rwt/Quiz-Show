@@ -4,9 +4,6 @@ dist/
 *.env.local
 .DS_Store
 
-# Prisma
-packages/backend/prisma/migrations/*.sql
-
 # Angular
 packages/frontend/.angular/
 packages/frontend/dist/

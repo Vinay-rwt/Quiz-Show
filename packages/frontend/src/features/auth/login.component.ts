@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
@@ -170,6 +170,7 @@ import { NeonButtonComponent } from '../../shared/components/neon-button.compone
 export class LoginComponent {
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   email = '';
   password = '';
@@ -180,7 +181,9 @@ export class LoginComponent {
     this.errorMsg.set('');
     try {
       await this.auth.login(this.email, this.password);
-      this.router.navigate(['/home']);
+      // Redirect to the page the guard originally blocked, or fall back to home.
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
+      this.router.navigateByUrl(returnUrl);
     } catch {
       this.errorMsg.set('Invalid email or password. Please try again.');
     }

@@ -78,6 +78,12 @@ export function createApp(): express.Application {
   app.use('/api/analytics', analyticsRouter);
   app.use('/api/leaderboard', leaderboardRouter);
 
+  // Catch unmatched /api/* routes before the global error handler so they
+  // return a consistent JSON shape instead of falling through to HTML/Express defaults.
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ error: 'Not found' });
+  });
+
   // Global error handler — never leak stack traces to clients
   app.use(
     (
