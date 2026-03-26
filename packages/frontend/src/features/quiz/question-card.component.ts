@@ -209,7 +209,7 @@ export class QuestionCardComponent implements OnChanges {
   }
 
   readonly isInteractionDisabled = computed(
-    () => this._disabled() || this._selectedIndex() !== null
+    () => this._disabled() || this._correctIndex() !== null
   );
 
   private getOptionState(index: number): OptionState {
