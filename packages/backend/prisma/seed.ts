@@ -4,6 +4,10 @@ import { reactQuestions } from './seeds/react-questions';
 import { angularQuestions } from './seeds/angular-questions';
 import { typescriptQuestions } from './seeds/typescript-questions';
 import { systemDesignQuestions } from './seeds/system-design-questions';
+import { javascriptQuestions } from './seeds/javascript-questions';
+import { pythonQuestions } from './seeds/python-questions';
+import { csharpQuestions } from './seeds/csharp-questions';
+import { dotnetQuestions } from './seeds/dotnet-questions';
 
 const prisma = new PrismaClient();
 
@@ -26,10 +30,14 @@ async function main(): Promise<void> {
 
   // 3. Seed questions per topic
   const questionSets: Array<{ slug: string; questions: typeof reactQuestions }> = [
-    { slug: 'react', questions: reactQuestions },
-    { slug: 'angular', questions: angularQuestions },
-    { slug: 'typescript', questions: typescriptQuestions },
-    { slug: 'system-design', questions: systemDesignQuestions },
+    { slug: 'react',          questions: reactQuestions },
+    { slug: 'angular',        questions: angularQuestions },
+    { slug: 'typescript',     questions: typescriptQuestions },
+    { slug: 'system-design',  questions: systemDesignQuestions },
+    { slug: 'javascript',     questions: javascriptQuestions },
+    { slug: 'python',         questions: pythonQuestions },
+    { slug: 'csharp',         questions: csharpQuestions },
+    { slug: 'dotnet',         questions: dotnetQuestions },
   ];
 
   for (const { slug, questions } of questionSets) {

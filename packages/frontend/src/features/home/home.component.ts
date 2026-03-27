@@ -25,10 +25,14 @@ interface TopicViewModel extends Topic {
 type FetchState = 'loading' | 'success' | 'error';
 
 const TOPIC_COLORS: Record<string, { glow: string; borderClass: string; cardClass: string }> = {
-  react:           { glow: '#00f5ff', borderClass: 'border-glow-cyan',   cardClass: 'react-card' },
-  angular:         { glow: '#ff00de', borderClass: 'border-glow-pink',   cardClass: 'angular-card' },
+  react:           { glow: '#00f5ff', borderClass: 'border-glow-cyan',       cardClass: 'react-card' },
+  angular:         { glow: '#ff00de', borderClass: 'border-glow-pink',       cardClass: 'angular-card' },
   typescript:      { glow: '#3178c6', borderClass: 'border-glow-typescript', cardClass: 'typescript-card' },
-  'system-design': { glow: '#9d00ff', borderClass: 'border-glow-purple', cardClass: 'system-design-card' },
+  'system-design': { glow: '#9d00ff', borderClass: 'border-glow-purple',     cardClass: 'system-design-card' },
+  javascript:      { glow: '#f7df1e', borderClass: 'border-glow-yellow',     cardClass: 'javascript-card' },
+  python:          { glow: '#4ade80', borderClass: 'border-glow-green',      cardClass: 'python-card' },
+  csharp:          { glow: '#c084fc', borderClass: 'border-glow-violet',     cardClass: 'csharp-card' },
+  dotnet:          { glow: '#818cf8', borderClass: 'border-glow-indigo',     cardClass: 'dotnet-card' },
 };
 
 function toViewModel(topic: Topic): TopicViewModel {
@@ -209,11 +213,19 @@ function toViewModel(topic: Topic): TopicViewModel {
     .angular-card::before       { background:linear-gradient(90deg,transparent,#ff00de,transparent); }
     .typescript-card::before    { background:linear-gradient(90deg,transparent,#3178c6,transparent); }
     .system-design-card::before { background:linear-gradient(90deg,transparent,#9d00ff,transparent); }
+    .javascript-card::before    { background:linear-gradient(90deg,transparent,#f7df1e,transparent); }
+    .python-card::before        { background:linear-gradient(90deg,transparent,#4ade80,transparent); }
+    .csharp-card::before        { background:linear-gradient(90deg,transparent,#c084fc,transparent); }
+    .dotnet-card::before        { background:linear-gradient(90deg,transparent,#818cf8,transparent); }
 
     .topic-card:hover.react-card         { border-color:rgba(0,245,255,.4);   box-shadow:0 8px 40px rgba(0,245,255,.2),0 4px 24px rgba(0,0,0,.5); }
     .topic-card:hover.angular-card       { border-color:rgba(255,0,222,.4);   box-shadow:0 8px 40px rgba(255,0,222,.2),0 4px 24px rgba(0,0,0,.5); }
     .topic-card:hover.typescript-card    { border-color:rgba(49,120,198,.4);  box-shadow:0 8px 40px rgba(49,120,198,.2),0 4px 24px rgba(0,0,0,.5); }
     .topic-card:hover.system-design-card { border-color:rgba(157,0,255,.4);   box-shadow:0 8px 40px rgba(157,0,255,.2),0 4px 24px rgba(0,0,0,.5); }
+    .topic-card:hover.javascript-card    { border-color:rgba(247,223,30,.4);  box-shadow:0 8px 40px rgba(247,223,30,.2),0 4px 24px rgba(0,0,0,.5); }
+    .topic-card:hover.python-card        { border-color:rgba(74,222,128,.4);  box-shadow:0 8px 40px rgba(74,222,128,.2),0 4px 24px rgba(0,0,0,.5); }
+    .topic-card:hover.csharp-card        { border-color:rgba(192,132,252,.4); box-shadow:0 8px 40px rgba(192,132,252,.2),0 4px 24px rgba(0,0,0,.5); }
+    .topic-card:hover.dotnet-card        { border-color:rgba(129,140,248,.4); box-shadow:0 8px 40px rgba(129,140,248,.2),0 4px 24px rgba(0,0,0,.5); }
 
     /* ── Icon container ──────────────────────────────────────────────── */
     .topic-icon-wrap {
@@ -224,6 +236,10 @@ function toViewModel(topic: Topic): TopicViewModel {
     .angular-card       .topic-icon-wrap { background:rgba(255,0,222,.08);   border:1px solid rgba(255,0,222,.15); }
     .typescript-card    .topic-icon-wrap { background:rgba(49,120,198,.08);  border:1px solid rgba(49,120,198,.15); }
     .system-design-card .topic-icon-wrap { background:rgba(157,0,255,.08);   border:1px solid rgba(157,0,255,.15); }
+    .javascript-card    .topic-icon-wrap { background:rgba(247,223,30,.08);  border:1px solid rgba(247,223,30,.15); }
+    .python-card        .topic-icon-wrap { background:rgba(74,222,128,.08);  border:1px solid rgba(74,222,128,.15); }
+    .csharp-card        .topic-icon-wrap { background:rgba(192,132,252,.08); border:1px solid rgba(192,132,252,.15); }
+    .dotnet-card        .topic-icon-wrap { background:rgba(129,140,248,.08); border:1px solid rgba(129,140,248,.15); }
 
     /* ── Topic name ──────────────────────────────────────────────────── */
     .topic-name {
@@ -253,6 +269,10 @@ function toViewModel(topic: Topic): TopicViewModel {
     .stagger-2 { animation:slide-in-up .4s .12s cubic-bezier(.16,1,.3,1) both; }
     .stagger-3 { animation:slide-in-up .4s .19s cubic-bezier(.16,1,.3,1) both; }
     .stagger-4 { animation:slide-in-up .4s .26s cubic-bezier(.16,1,.3,1) both; }
+    .stagger-5 { animation:slide-in-up .4s .33s cubic-bezier(.16,1,.3,1) both; }
+    .stagger-6 { animation:slide-in-up .4s .40s cubic-bezier(.16,1,.3,1) both; }
+    .stagger-7 { animation:slide-in-up .4s .47s cubic-bezier(.16,1,.3,1) both; }
+    .stagger-8 { animation:slide-in-up .4s .54s cubic-bezier(.16,1,.3,1) both; }
 
     @keyframes spin { to { transform:rotate(360deg); } }
     @keyframes slide-in-up {
@@ -335,10 +355,18 @@ function toViewModel(topic: Topic): TopicViewModel {
                 [class.angular-card]="topic.slug === 'angular'"
                 [class.typescript-card]="topic.slug === 'typescript'"
                 [class.system-design-card]="topic.slug === 'system-design'"
+                [class.javascript-card]="topic.slug === 'javascript'"
+                [class.python-card]="topic.slug === 'python'"
+                [class.csharp-card]="topic.slug === 'csharp'"
+                [class.dotnet-card]="topic.slug === 'dotnet'"
                 [class.stagger-1]="i === 0"
                 [class.stagger-2]="i === 1"
                 [class.stagger-3]="i === 2"
                 [class.stagger-4]="i === 3"
+                [class.stagger-5]="i === 4"
+                [class.stagger-6]="i === 5"
+                [class.stagger-7]="i === 6"
+                [class.stagger-8]="i === 7"
                 (click)="onTopicSelect(topic)"
                 type="button"
               >
@@ -374,6 +402,40 @@ function toViewModel(topic: Topic): TopicViewModel {
                         <line x1="24" y1="15" x2="12" y2="31" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <line x1="24" y1="15" x2="36" y2="31" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <line x1="15" y1="36" x2="33" y2="36" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 2.5"/>
+                      </svg>
+                    }
+                    @case ('javascript') {
+                      <!-- JS badge shape -->
+                      <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                        <rect x="5" y="5" width="38" height="38" rx="6" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                        <path d="M16 34c0 3 1.8 4.5 4.5 4.5s4.5-1.8 4.5-5V20h-3v13.5c0 1.5-.6 2-1.5 2s-1.3-.6-1.8-1.5L16 34z" fill="currentColor"/>
+                        <path d="M29 33.5c.7 1.2 1.8 2 3.5 2 1.5 0 2.8-.8 2.8-2.2 0-1.5-1-2-2.5-2.7l-.8-.3c-2.3-1-3.8-2.3-3.8-4.8 0-2.4 1.8-4.2 4.7-4.2 2 0 3.5.7 4.5 2.5l-2.5 1.6c-.5-1-1-1.5-2-1.5-1 0-1.6.6-1.6 1.4 0 1 .6 1.4 2 2l.8.4c2.7 1.2 4.2 2.4 4.2 5 0 2.8-2.2 4.5-5.2 4.5-2.9 0-4.8-1.5-5.7-3.4L29 33.5z" fill="currentColor"/>
+                      </svg>
+                    }
+                    @case ('python') {
+                      <!-- Python snake-like interlock -->
+                      <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                        <path d="M24 6c-6 0-10 2.5-10 6v4h10v2H10c-3.5 0-7 3-7 8s3 8 7 8h3v-5c0-3.5 3.5-6 8-6h8c4 0 7-2.5 7-6V12c0-3.5-3.5-6-12-6z" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linejoin="round"/>
+                        <path d="M24 42c6 0 10-2.5 10-6v-4H24v-2h14c3.5 0 7-3 7-8s-3-8-7-8h-3v5c0 3.5-3.5 6-8 6h-8c-4 0-7 2.5-7 6v6c0 3.5 3.5 5 12 5z" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linejoin="round"/>
+                        <circle cx="19" cy="15" r="1.5" fill="currentColor"/>
+                        <circle cx="29" cy="33" r="1.5" fill="currentColor"/>
+                      </svg>
+                    }
+                    @case ('csharp') {
+                      <!-- C# hash grid -->
+                      <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                        <path d="M8 17h32M8 31h32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M17 8v32M31 8v32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="24" y="27" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor" font-family="monospace">C#</text>
+                      </svg>
+                    }
+                    @case ('dotnet') {
+                      <!-- .NET diamond -->
+                      <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                        <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                        <path d="M12 24h6M30 24h6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="18" cy="24" r="2" fill="currentColor"/>
+                        <text x="24" y="28" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" font-family="monospace">.NET</text>
                       </svg>
                     }
                     @default {
