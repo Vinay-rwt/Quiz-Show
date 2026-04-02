@@ -265,7 +265,7 @@ export const csharpQuestions: SeedQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      '`FirstOrDefault` is the safe variant of `First`. When no match is found it returns `default(T)` — which is `null` for reference types and the zero-initialised value for structs (e.g. `0` for `int`). C# 6+ overloads let you specify a custom default.',
+      '`FirstOrDefault` is the safe variant of `First`. When no match is found it returns `default(T)` — which is `null` for reference types and the zero-initialised value for structs (e.g. `0` for `int`). .NET 6+ overloads let you specify a custom default.',
   },
 
   // 18. LINQ — GroupBy
