@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model Topic {
+  id       String  @id @default(cuid())
+  name     String
+  slug     String  @unique  // "react" | "angular" | "typescript" | "system-design"
+  icon     String           // emoji or icon name
+  color    String           // hex color for neon glow, e.g. "#00f5ff"
+
+  questions Question[]
+  attempts  QuizAttempt[]
+
+  @@map("topics")
+}
+
+model Question {
+  id           String     @id @default(cuid())
+  topicId      String     @map("topic_id")
+  topic        Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  difficulty   Difficulty
+  text         String
+  // Stored as JSON array: [{ "text": "option A" }, { "text": "option B" }, ...]
+  // Avoids a separate Option table and JOIN on every question fetch
+  options      Json
+  correctIndex Int        @map("correct_index")
+  explanation  String
+
+  questionAttempts QuestionAttempt[]
+
+  @@index([topicId, difficulty])
+  @@map("questions")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  attempts QuizAttempt[]
+
+  @@map("users")
+}
+
+model QuizAttempt {
+  id             String     @id @default(cuid())
+  // Non-nullable: guest attempts are never written to DB.
+  // The service guards against persisting without a userId, so every row
+  // in this table belongs to an authenticated user.
+  userId         String     @map("user_id")
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId        String     @map("topic_id")
+  topic          Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  difficulty     Difficulty
+  score          Int        // number of correct answers
+  totalQuestions Int        @map("total_questions")
+  completedAt    DateTime   @default(now()) @map("completed_at")
+
+  questionAttempts QuestionAttempt[]
+
+  @@index([userId])
+  @@index([topicId])
+  @@map("quiz_attempts")
+}
+
+model QuestionAttempt {
+  id            String      @id @default(cuid())
+  quizAttemptId String      @map("quiz_attempt_id")
+  quizAttempt   QuizAttempt @relation(fields: [quizAttemptId], references: [id], onDelete: Cascade)
+  questionId    String      @map("question_id")
+  question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedIndex Int         @map("selected_index")  // -1 = timed out
+  timeTaken     Int         @map("time_taken")       // seconds (max 60)
+  isCorrect     Boolean     @map("is_correct")
+
+  @@index([quizAttemptId])
+  @@map("question_attempts")
+}
