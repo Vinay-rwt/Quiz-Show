@@ -7,3 +7,6 @@ dist/
 # Angular
 packages/frontend/.angular/
 packages/frontend/dist/
+
+# Claude
+CLAUDE.md
