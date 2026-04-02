@@ -11,10 +11,14 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
 
 // Map topic slug → neon hex for bar chart colours
 const TOPIC_COLORS: Record<string, string> = {
-  react:          '#00f5ff',
-  angular:        '#ff00de',
-  typescript:     '#9d00ff',
+  react:           '#00f5ff',
+  angular:         '#ff00de',
+  typescript:      '#9d00ff',
   'system-design': '#ffd700',
+  javascript:      '#f7df1e',
+  python:          '#4ade80',
+  csharp:          '#c084fc',
+  dotnet:          '#818cf8',
 };
 
 function topicColor(slug: string): string {
@@ -496,6 +500,10 @@ export class AnalyticsComponent implements OnInit {
     { slug: 'angular',        label: 'Angular' },
     { slug: 'typescript',     label: 'TypeScript' },
     { slug: 'system-design',  label: 'System Design' },
+    { slug: 'javascript',     label: 'JavaScript' },
+    { slug: 'python',         label: 'Python' },
+    { slug: 'csharp',         label: 'C#' },
+    { slug: 'dotnet',         label: '.NET' },
   ];
 
   readonly topicColorFn = topicColor;

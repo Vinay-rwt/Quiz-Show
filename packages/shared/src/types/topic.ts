@@ -1,4 +1,4 @@
-export type TopicSlug = 'react' | 'angular' | 'typescript' | 'system-design';
+export type TopicSlug = 'react' | 'angular' | 'typescript' | 'system-design' | 'javascript' | 'python' | 'csharp' | 'dotnet';
 
 export interface Topic {
   id: string;
