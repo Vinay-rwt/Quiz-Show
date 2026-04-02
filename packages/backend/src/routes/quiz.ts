@@ -18,7 +18,7 @@ const answerSchema = z.object({
 const submitSchema = z.object({
   // Validated as a strict enum so invalid slugs are rejected at the schema layer,
   // not silently passed through to a DB lookup.
-  topicSlug: z.enum(['react', 'angular', 'typescript', 'system-design']),
+  topicSlug: z.enum(['react', 'angular', 'typescript', 'system-design', 'javascript', 'python', 'csharp', 'dotnet']),
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
   answers: z.array(answerSchema).min(1).max(15),
 });

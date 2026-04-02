@@ -23,4 +23,28 @@ export const topicsData = [
     icon: '🏗️',
     color: '#9d00ff',
   },
+  {
+    name: 'JavaScript',
+    slug: 'javascript',
+    icon: '🟨',
+    color: '#f7df1e',
+  },
+  {
+    name: 'Python',
+    slug: 'python',
+    icon: '🐍',
+    color: '#4ade80',
+  },
+  {
+    name: 'C#',
+    slug: 'csharp',
+    icon: '💜',
+    color: '#c084fc',
+  },
+  {
+    name: '.NET',
+    slug: 'dotnet',
+    icon: '🔵',
+    color: '#818cf8',
+  },
 ];
